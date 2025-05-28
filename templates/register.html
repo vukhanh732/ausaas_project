@@ -4,8 +4,8 @@
 
 {% block content %}
     <h2>Register</h2>
-    <form method="POST">
-        {{ form.csrf_token }} {# CSRF token is crucial for security #}
+    <form method="POST" id="registrationForm">
+        {{ form.csrf_token }}
         <div>
             {{ form.username.label }}<br>
             {{ form.username(size=30) }}
@@ -15,20 +15,128 @@
         </div>
         <div>
             {{ form.password.label }}<br>
-            {{ form.password(size=30) }}
+            {{ form.password(size=30, id='passwordInput') }}
+            {# --- NEW: Show Password Checkbox for passwordInput --- #}
+            <input type="checkbox" id="showPasswordReg" class="show-password-toggle">
+            <label for="showPasswordReg">Show Password</label>
+            {# --- END NEW --- #}
+            <div id="password-requirements">
+                <p>Password must meet the following criteria:</p>
+                <ul>
+                    <li id="length">
+                        <span class="indicator">&#x2717;</span> At least 12 characters
+                    </li>
+                    <li id="lowercase">
+                        <span class="indicator">&#x2717;</span> At least one lowercase letter
+                    </li>
+                    <li id="uppercase">
+                        <span class="indicator">&#x2717;</span> At least one uppercase letter
+                    </li>
+                    <li id="number">
+                        <span class="indicator">&#x2717;</span> At least one number
+                    </li>
+                    <li id="special">
+                        <span class="indicator">&#x2717;</span> At least one special character (!@#$%^&*)
+                    </li>
+                </ul>
+            </div>
             {% for error in form.password.errors %}
                 <span style="color: red;">{{ error }}</span>
             {% endfor %}
         </div>
         <div>
             {{ form.confirm_password.label }}<br>
-            {{ form.confirm_password(size=30) }}
+            {{ form.confirm_password(size=30, id='confirmPasswordInput') }} {# Added id="confirmPasswordInput" #}
+            {# --- NEW: Show Password Checkbox for confirmPasswordInput --- #}
+            <input type="checkbox" id="showConfirmPasswordReg" class="show-password-toggle">
+            <label for="showConfirmPasswordReg">Show Password</label>
+            {# --- END NEW --- #}
             {% for error in form.confirm_password.errors %}
                 <span style="color: red;">{{ error }}</span>
             {% endfor %}
         </div>
         <div>
-            {{ form.submit() }}
+            {{ form.submit(id='submitButton', disabled=true) }}
         </div>
     </form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const passwordInput = document.getElementById('passwordInput');
+    const confirmPasswordInput = document.getElementById('confirmPasswordInput'); // NEW
+    const submitButton = document.getElementById('submitButton');
+    
+    // NEW: Show Password Toggles
+    const showPasswordReg = document.getElementById('showPasswordReg'); // For password
+    const showConfirmPasswordReg = document.getElementById('showConfirmPasswordReg'); // For confirm password
+
+    // Helper function to toggle password visibility
+    function togglePasswordVisibility(inputElement, checkboxElement) {
+        if (checkboxElement.checked) {
+            inputElement.type = 'text';
+        } else {
+            inputElement.type = 'password';
+        }
+    }
+
+    if (showPasswordReg) { // Check if element exists before adding listener
+        showPasswordReg.addEventListener('change', () => togglePasswordVisibility(passwordInput, showPasswordReg));
+    }
+    if (showConfirmPasswordReg) { // Check if element exists
+        showConfirmPasswordReg.addEventListener('change', () => togglePasswordVisibility(confirmPasswordInput, showConfirmPasswordReg));
+    }
+    // END NEW: Show Password Toggles
+
+    const requirements = {
+        length: { regex: /.{12,}/, element: document.getElementById('length') },
+        lowercase: { regex: /[a-z]/, element: document.getElementById('lowercase') },
+        uppercase: { regex: /[A-Z]/, element: document.getElementById('uppercase') },
+        number: { regex: /[0-9]/, element: document.getElementById('number') },
+        special: { regex: /[!@#$%^&*]/, element: document.getElementById('special') }
+    };
+
+    function validatePassword() {
+        const password = passwordInput.value;
+        let allMet = true;
+
+        for (const key in requirements) {
+            const requirement = requirements[key];
+            const isMet = requirement.regex.test(password);
+            const indicator = requirement.element.querySelector('.indicator');
+
+            if (isMet) {
+                indicator.textContent = '✓'; // Checkmark
+                indicator.style.color = 'green';
+            } else {
+                indicator.textContent = '✗'; // Cross
+                indicator.style.color = 'red';
+                allMet = false;
+            }
+        }
+        
+        // Also check if confirm password matches (now using its new ID)
+        if (confirmPasswordInput) { // Ensure confirm password input exists
+            const passwordsMatch = (password === confirmPasswordInput.value) && password !== '';
+            if (!passwordsMatch) {
+                allMet = false; // Cannot submit if passwords don't match
+            }
+        }
+
+        // Enable/disable submit button based on all requirements met
+        submitButton.disabled = !allMet;
+    }
+
+    // Add event listener for real-time validation
+    passwordInput.addEventListener('keyup', validatePassword);
+
+    // Initial validation check on page load (for browsers that autofill)
+    validatePassword();
+
+    // Also validate when confirm password changes, as it affects submit button state
+    if (confirmPasswordInput) {
+        confirmPasswordInput.addEventListener('keyup', validatePassword);
+    }
+
+</script>
 {% endblock %}

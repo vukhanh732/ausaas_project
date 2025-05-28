@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Roles - AUSAAS{% endblock %}
+
+{% block content %}
+    <h2>Manage Roles</h2>
+    <p>Admin functionality to add and delete roles in the system.</p>
+
+    <div class="role-management-section">
+        <h3>Add New Role</h3>
+        <form method="POST">
+            {{ add_form.csrf_token }}
+            {{ add_form.name.label }}<br>
+            {{ add_form.name(size=50) }}
+            {% for error in add_form.name.errors %}
+                <span style="color: red;">{{ error }}</span>
+            {% endfor %}
+            <br>
+            {{ add_form.description.label }}<br>
+            {{ add_form.description(size=50) }}
+            {% for error in add_form.description.errors %}
+                <span style="color: red;">{{ error }}</span>
+            {% endfor %}
+            <br>
+            {{ add_form.submit() }}
+        </form>
+    </div>
+
+    <div class="role-management-section">
+        <h3>Delete Role</h3>
+        <form method="POST">
+            {{ delete_form.csrf_token }}
+            {{ delete_form.role_to_delete.label }}<br>
+            {{ delete_form.role_to_delete() }}
+            {% for error in delete_form.role_to_delete.errors %}
+                <span style="color: red;">{{ error }}</span>
+            {% endfor %}
+            <br>
+            {{ delete_form.submit() }}
+        </form>
+    </div>
+
+    <div class="role-management-section">
+        <h3>Current Roles</h3>
+        <ul>
+            {% for role in all_roles %}
+                <li><span class="role-tag">{{ role.name }}</span> - {{ role.description if role.description else 'No description' }} (ID: {{ role.id }})</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}
+
+{# Optional: Basic styling for sections #}
+{% block styles %}
+<style>
+    .role-management-section {
+        border: 1px solid #ddd;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+    }
+    .role-tag {
+        background-color: #007bff;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.9em;
+        margin-right: 5px;
+        display: inline-block;
+    }
+</style>
+{% endblock %}

@@ -8,6 +8,10 @@
         <p>Welcome, Administrator <strong>{{ username }}</strong>!</p>
         <p>This page is only accessible to users with the 'admin' role.</p>
         <p>Here you can manage users, settings, and other administrative tasks.</p>
+        <p>
+            <a href="{{ url_for('auth.manage_users') }}">Manage Users</a> |
+            <a href="{{ url_for('auth.roles_management') }}">Manage Roles</a> {# NEW LINK #}
+        </p>
     {% else %}
         <p>Access Denied: You need to be logged in as an administrator to view this page.</p>
     {% endif %}

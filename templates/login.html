@@ -15,7 +15,11 @@
         </div>
         <div>
             {{ form.password.label }}<br>
-            {{ form.password(size=30) }}
+            {{ form.password(size=30, id='loginPasswordInput') }} {# Added id="loginPasswordInput" #}
+            {# --- NEW: Show Password Checkbox for loginPasswordInput --- #}
+            <input type="checkbox" id="showPasswordLogin" class="show-password-toggle">
+            <label for="showPasswordLogin">Show Password</label>
+            {# --- END NEW --- #}
             {% for error in form.password.errors %}
                 <span style="color: red;">{{ error }}</span>
             {% endfor %}
@@ -27,4 +31,27 @@
             {{ form.submit() }}
         </div>
     </form>
+{% endblock %}
+
+{% block scripts %} {# Ensure this block exists in base.html #}
+<script>
+    // NEW: Show Password Toggle for Login Form
+    const loginPasswordInput = document.getElementById('loginPasswordInput');
+    const showPasswordLogin = document.getElementById('showPasswordLogin');
+
+    // Helper function to toggle password visibility (reused from register.html concept)
+    function togglePasswordVisibility(inputElement, checkboxElement) {
+        if (checkboxElement.checked) {
+            inputElement.type = 'text';
+        } else {
+            inputElement.type = 'password';
+        }
+    }
+
+    if (showPasswordLogin && loginPasswordInput) {
+        showPasswordLogin.addEventListener('change', () => togglePasswordVisibility(loginPasswordInput, showPasswordLogin));
+    }
+    // END NEW: Show Password Toggle for Login Form
+
+</script>
 {% endblock %}
