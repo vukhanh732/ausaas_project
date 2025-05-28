@@ -1,7 +1,5 @@
 venv/
 *.pyc
 __pycache__/
-*.log
 *.db
-generated_waf_rules.conf
-sim_access.log  # Add this line
+instance/
