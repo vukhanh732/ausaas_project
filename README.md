@@ -1,8 +1,8 @@
-# AUSAAS: AI-Assisted Secure User Authentication and Authorization System
+# AUSAAS: Secure User Authentication and Authorization System
 
 ## Project Overview
 
-The **AUSAAS (AI-Assisted Secure User Authentication and Authorization System)** is a Flask-based web application designed to demonstrate and implement robust user authentication and Role-Based Access Control (RBAC). It serves as a reusable, secure login portal module for other Flask projects, integrating modern cybersecurity best practices from the ground up.
+The **AUSAAS (Secure User Authentication and Authorization System)** is a Flask-based web application designed to demonstrate and implement robust user authentication and Role-Based Access Control (RBAC). It serves as a reusable, secure login portal module for other Flask projects, integrating modern cybersecurity best practices from the ground up.
 
 This project showcases secure password handling, session management, comprehensive input validation, flexible authorization, and includes a full suite of automated tests to verify its security and functionality.
 
@@ -56,10 +56,9 @@ This project showcases secure password handling, session management, comprehensi
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/](https://github.com/)<YOUR_GITHUB_USERNAME>/AUSAAS.git
+    git clone [https://github.com/](https://github.com/)<vukhanh732>/AUSAAS.git
     cd AUSAAS
     ```
-    (Replace `<YOUR_GITHUB_USERNAME>` with your actual GitHub username).
 
 2.  **Create and activate a Python virtual environment:**
     ```bash
