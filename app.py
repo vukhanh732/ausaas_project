@@ -39,10 +39,20 @@ def create_app():
         username = session.get('username')
         return render_template('home.html', username=username)
 
-    # --- Error Handling (Example) ---
+    # --- Error Handling ---
     @app.errorhandler(404)
     def page_not_found(e):
-        return "<h1>404</h1><p>The page you requested could not be found.</p>", 404
+        return render_template('error.html', code=404, message="The page you requested could not be found."), 404
+
+    @app.errorhandler(403) # NEW: Forbidden error handler
+    def forbidden_access(e):
+        return render_template('error.html', code=403, message="You do not have permission to access this resource."), 403
+
+    @app.errorhandler(500) # NEW: Internal Server Error handler
+    def internal_server_error(e):
+        # Log the full error for debugging in development, but show generic message to user
+        current_app.logger.error(f"Internal Server Error: {e}", exc_info=True)
+        return render_template('error.html', code=500, message="An unexpected error occurred on the server. Please try again later."), 500
 
     return app
 
