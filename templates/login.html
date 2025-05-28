@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Login - AUSAAS{% endblock %}
+
+{% block content %}
+    <h2>Login</h2>
+    <form method="POST">
+        {{ form.csrf_token }}
+        <div>
+            {{ form.username.label }}<br>
+            {{ form.username(size=30) }}
+            {% for error in form.username.errors %}
+                <span style="color: red;">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div>
+            {{ form.password.label }}<br>
+            {{ form.password(size=30) }}
+            {% for error in form.password.errors %}
+                <span style="color: red;">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div>
+            {{ form.remember_me.label }} {{ form.remember_me() }}
+        </div>
+        <div>
+            {{ form.submit() }}
+        </div>
+    </form>
+{% endblock %}

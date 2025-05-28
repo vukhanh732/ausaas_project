@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField # Added BooleanField for remember me
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
-from auth.models import User # Import User model to check for existing users
+from auth.models import User
 
 class RegistrationForm(FlaskForm):
     username = StringField(
@@ -16,7 +16,6 @@ class RegistrationForm(FlaskForm):
         validators=[
             DataRequired(message='Password is required.'),
             Length(min=8, message='Password must be at least 8 characters long.')
-            # You can add more complex password policies here (e.g., regex for complexity)
         ]
     )
     confirm_password = PasswordField(
@@ -29,9 +28,19 @@ class RegistrationForm(FlaskForm):
     submit = SubmitField('Register')
 
     def validate_username(self, username):
-        """Custom validator to check if username already exists."""
         user = User.query.filter_by(username=username.data).first()
         if user:
             raise ValidationError('That username is taken. Please choose a different one.')
 
-# We'll add LoginForm in a later phase
+# --- NEW: LoginForm ---
+class LoginForm(FlaskForm):
+    username = StringField(
+        'Username',
+        validators=[DataRequired(message='Username is required.')]
+    )
+    password = PasswordField(
+        'Password',
+        validators=[DataRequired(message='Password is required.')]
+    )
+    remember_me = BooleanField('Remember Me') # Optional: for persistent sessions
+    submit = SubmitField('Login')
