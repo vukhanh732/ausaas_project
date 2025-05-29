@@ -5,21 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}AUSAAS{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {# --- NEW: Styles Block for template-specific styles --- #}
+    {% block styles %}{% endblock %}
+    {# --- END NEW --- #}
 </head>
 <body>
     <header>
         <nav>
-                <a href="{{ url_for('home') }}">Home</a>
-                {% if username %}
-                    <a href="{{ url_for('auth.dashboard') }}">Dashboard</a> {# NEW LINK #}
-                    <a href="{{ url_for('auth.admin_panel') }}">Admin Panel</a> {# NEW LINK #}
-                    <span>Hello, {{ username }}!</span>
-                    <a href="{{ url_for('auth.logout') }}">Logout</a>
-                {% else %}
-                    <a href="{{ url_for('auth.register') }}">Register</a>
-                    <a href="{{ url_for('auth.login') }}">Login</a>
-                {% endif %}
-            </nav>
+            <a href="{{ url_for('home') }}">Home</a>
+            {% if username %}
+                <a href="{{ url_for('auth.dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('auth.admin_panel') }}">Admin Panel</a>
+                <span>Hello, {{ username }}!</span>
+                <a href="{{ url_for('auth.logout') }}">Logout</a>
+            {% else %}
+                <a href="{{ url_for('auth.register') }}">Register</a>
+                <a href="{{ url_for('auth.login') }}">Login</a>
+            {% endif %}
+        </nav>
     </header>
 
     <main>
@@ -39,8 +42,7 @@
         <p>&copy; 2025 AUSAAS Project</p>
     </footer>
 
-    {# --- NEW: Script Block for JavaScript --- #}
+    {# Script Block for JavaScript (e.g., password validation, show/hide password) #}
     {% block scripts %}{% endblock %}
-    {# --- END NEW --- #}
 </body>
 </html>

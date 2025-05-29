@@ -1,5 +1,7 @@
-from flask import Flask, render_template, redirect, url_for, session, current_app 
+# app.py
+from flask import Flask, render_template, redirect, url_for, session, current_app
 from flask_sqlalchemy import SQLAlchemy
+from flask_mail import Mail, Message # NEW: Import Mail and Message (and Message, though Message is used in routes.py)
 from config import Config
 import os
 import logging
@@ -9,6 +11,7 @@ from flask.cli import with_appcontext
 
 # Initialize database
 db = SQLAlchemy()
+mail = Mail() # NEW: Initialize Mail
 
 # Configure logging for the main app
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -23,43 +26,44 @@ def create_app():
         os.makedirs(app.instance_path)
 
     db.init_app(app)
+    mail.init_app(app) # NEW: Initialize Mail with the app
 
     # Register Blueprints
     from auth import auth_bp # Import auth_bp
     app.register_blueprint(auth_bp, url_prefix='/auth')
 
     # --- Register Custom CLI Commands within create_app() ---
-    # This ensures the Flask CLI discovers the command when it loads the app factory.
-    app.cli.add_command(init_app_data_command) # This line now goes here
+    app.cli.add_command(init_app_data_command)
     # --- END NEW ---
 
     # --- Main Application Routes (Non-auth) ---
     @app.route('/')
     def home():
         username = session.get('username')
-        return render_template('home.html', username=username)
+        user_roles = session.get('user_roles', []) # Pass roles to home template
+        return render_template('home.html', username=username, user_roles=user_roles)
 
     # --- Error Handling ---
     @app.errorhandler(404)
     def page_not_found(e):
         return render_template('error.html', code=404, message="The page you requested could not be found."), 404
 
-    @app.errorhandler(403) # NEW: Forbidden error handler
+    @app.errorhandler(403)
     def forbidden_access(e):
         return render_template('error.html', code=403, message="You do not have permission to access this resource."), 403
 
-    @app.errorhandler(500) # NEW: Internal Server Error handler
+    @app.errorhandler(500)
     def internal_server_error(e):
-        # Log the full error for debugging in development, but show generic message to user
         current_app.logger.error(f"Internal Server Error: {e}", exc_info=True)
         return render_template('error.html', code=500, message="An unexpected error occurred on the server. Please try again later."), 500
 
+
     return app
 
-# --- Custom CLI Command Definition (MOVED OUTSIDE create_app) ---
-# This function is now outside `create_app`, but its registration is inside it.
-@click.command('init-app-data') # Register this function as a CLI command
-@with_appcontext # Ensures the Flask app context is available
+# --- Custom CLI Command Definition ---
+# --- Custom CLI Command Definition ---
+@click.command('init-app-data')
+@with_appcontext
 def init_app_data_command():
     """Initializes the database, creates default roles, and optionally creates an admin user."""
     from auth.models import User, Role, init_roles # Import models and init_roles
@@ -68,43 +72,62 @@ def init_app_data_command():
     db.create_all() # Create tables
     click.echo('Database tables created.')
 
-    click.echo('Initializing default roles (admin, user)...')
-    # Use current_app from Flask, as we're in an app context (provided by @with_appcontext)
+    click.echo('Initializing default roles (admin, user, developer, it)...')
     init_roles(current_app) # Initialize roles using the app context
     click.echo('Default roles initialized.')
 
-    # Check if an admin user already exists, if not, prompt to create one
+    all_roles = Role.query.all()
+    role_choices = [(str(r.id), r.name) for r in all_roles]
+    
     admin_username = click.prompt("Enter desired admin username (or leave blank to skip admin creation)", default="")
     if admin_username:
-        if not User.query.filter_by(username=admin_username).first():
+        user = User.query.filter_by(username=admin_username).first()
+        
+        if not user:
+            # --- NEW: Prompt for Admin Email ---
+            admin_email = click.prompt("Enter admin email")
+            # --- END NEW ---
             admin_password = click.prompt("Enter admin password", hide_input=True, confirmation_prompt=True)
-            new_admin_user = User(username=admin_username)
-            new_admin_user.set_password(admin_password)
-            db.session.add(new_admin_user)
+            # --- NEW: Pass email to User constructor ---
+            user = User(username=admin_username, email=admin_email)
+            # --- END NEW ---
+            user.set_password(admin_password)
+            db.session.add(user)
             db.session.commit()
-            
-            new_admin_user.add_role('admin') # Assign admin role
-            db.session.commit()
-            click.echo(f"Admin user '{admin_username}' created and assigned 'admin' role.")
+            click.echo(f"User '{admin_username}' created.")
         else:
-            click.echo(f"Admin user '{admin_username}' already exists. Skipping creation.")
-            existing_admin = User.query.filter_by(username=admin_username).first()
-            if not existing_admin.has_role('admin'):
-                existing_admin.add_role('admin')
-                db.session.commit()
-                click.echo(f"Assigned 'admin' role to existing user '{admin_username}'.")
+            click.echo(f"User '{admin_username}' already exists. Skipping creation.")
+
+        # ... (rest of the role assignment logic) ...
+        selected_role_ids = click.prompt(
+            f"Assign roles to '{admin_username}' (comma-separated IDs from {all_roles}):",
+            type=str,
+            default="1" # Default to 'admin' role ID
+        ).split(',')
+        
+        assigned_roles_names = []
+        for role_id_str in selected_role_ids:
+            try:
+                role_id = int(role_id_str.strip())
+                role = Role.query.get(role_id)
+                if role:
+                    if role not in user.roles:
+                        user.roles.append(role)
+                        assigned_roles_names.append(role.name)
+            except ValueError:
+                click.echo(f"Warning: Invalid role ID '{role_id_str}'. Skipping.")
+        
+        if assigned_roles_names:
+            db.session.commit()
+            click.echo(f"Assigned roles: {', '.join(assigned_roles_names)} to user '{admin_username}'.")
+        else:
+            click.echo(f"No valid roles assigned to user '{admin_username}'.")
+        
     else:
-        click.echo("Admin user creation skipped.")
+        click.echo("User creation skipped.")
 
     click.echo("Application data initialization complete.")
 
-
-# --- Update the if __name__ == '__main__': block ---
-# This block is only executed when app.py is run directly (e.g., `python app.py`),
-# not when `flask <command>` is used.
 if __name__ == '__main__':
     app = create_app()
-    # No longer call db.create_all() or init_roles() or register_cli_commands() directly here.
-    # Everything is now handled by the custom CLI command discovered by `flask init-app-data`.
-    # The `app.cli.add_command` is inside `create_app()`
-    app.run(debug=True) # debug=True is for development only!
+    app.run(debug=True)
