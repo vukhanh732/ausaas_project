@@ -17,6 +17,12 @@ This project showcases secure password handling, session management, comprehensi
     * Checks against a list of commonly used/banned passwords.
     * Provides real-time, client-side visual feedback during password entry (length, complexity checks) for improved user experience.
 * **"Show Password" Toggle:** Enhances usability and accessibility for password fields.
+![image](https://github.com/user-attachments/assets/b8f9709c-cae0-4c42-8a07-669a8987530d)
+![image](https://github.com/user-attachments/assets/3bc8da77-ea18-4920-9906-cdcf3d662227)
+![image](https://github.com/user-attachments/assets/3850f702-7f58-4070-aa54-a9b836732e16)
+
+
+
 
 ### Authorization (Role-Based Access Control - RBAC)
 * **Multi-Role Support:** Supports multiple predefined roles (e.g., `admin`, `user`, `developer`, `it`).
@@ -56,7 +62,7 @@ This project showcases secure password handling, session management, comprehensi
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/](https://github.com/)<vukhanh732>/AUSAAS.git
+    git clone https://github.com/vukhanh732/ausaas_project.git
     cd AUSAAS
     ```
 
